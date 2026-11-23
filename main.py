@@ -1633,7 +1633,7 @@ class CodeForgeApp(App):
         self.find_open = False
 
     def _build_preview_layer(self):
-        pl = BoxLayout(orientation='vertical', opacity=0, disabled=True)
+        pl = BoxLayout(orientation='vertical')
         bar = Bar('bar', size_hint_y=None, height=dp(52),
                   padding=(dp(6), dp(6)), spacing=dp(4))
         close = Btn('Close', 'danger', size_hint_x=None, width=dp(72))
@@ -1657,7 +1657,6 @@ class CodeForgeApp(App):
         self.preview_layer = pl
         self.pv_bar = bar
         self.pv_console_shown = False
-        self.root_fl.add_widget(pl)
 
     # -- theme ------------------------------------------------------------
     def apply_theme_all(self):
@@ -1992,8 +1991,8 @@ class CodeForgeApp(App):
             self.pv_console.line('$ %s' % d.name, 'info')
             self.pv_console_shown = False
             self.pv_console_btn.text = 'Console'
-            self.preview_layer.opacity = 1
-            self.preview_layer.disabled = False
+            if self.preview_layer.parent is None:
+                self.root_fl.add_widget(self.preview_layer)
             self.preview.show(html, base)
 
     def console_write(self, s, kind='out'):
@@ -2016,8 +2015,8 @@ class CodeForgeApp(App):
 
     def close_preview(self):
         self.preview.close()
-        self.preview_layer.opacity = 0
-        self.preview_layer.disabled = True
+        if self.preview_layer.parent is not None:
+            self.root_fl.remove_widget(self.preview_layer)
 
     def show_console(self):
         self.console.height = max(dp(150), Window.height * .3)
@@ -2376,7 +2375,7 @@ class CodeForgeApp(App):
     def on_key(self, window, key, *args):
         if key != 27:
             return False
-        if self.preview_layer.opacity:
+        if self.preview_layer.parent is not None:
             self.close_preview()
             return True
         # close any open modal first
